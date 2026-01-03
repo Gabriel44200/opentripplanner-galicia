@@ -15,20 +15,15 @@
       "type": "gtfs",
       "source": "./feeds/feve.zip"
     },
-        {
-      "feedId": "cercanias",
+    {
+      "feedId": "tussa",
       "type": "gtfs",
-      "source": "./feeds/cercanias.zip"
+      "source": "./feeds/tussa.zip"
     },
     {
-      "feedId": "santiago",
+      "feedId": "tranvias",
       "type": "gtfs",
-      "source": "./feeds/ibi_santiago.zip"
-    },
-    {
-      "feedId": "coruna",
-      "type": "gtfs",
-      "source": "./feeds/coruna.zip"
+      "source": "./feeds/tranvias.zip"
     },
     {
       "feedId": "vitrasa",
