@@ -1,3 +1,6 @@
+# Taskfile
+.task/
+
 # Blobs
 *.osm.pbf
 *.obj
