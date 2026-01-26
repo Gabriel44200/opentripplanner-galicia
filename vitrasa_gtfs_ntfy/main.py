@@ -67,6 +67,18 @@ def load_gtfs_last_modified(url: str) -> datetime | None:
     return None
 
 
+def format_date_spanish(dt: datetime) -> str:
+    """Format a datetime object into a Spanish date string."""
+    months = [
+        "enero", "febrero", "marzo", "abril", "mayo", "junio",
+        "julio", "agosto", "septiembre", "octubre", "noviembre", "diciembre"
+    ]
+    day = dt.day
+    month = months[dt.month - 1]
+    time = dt.strftime("%H:%M")
+    return f"{day} de {month}, {time}"
+
+
 def push_ntfy(topic: str, message: str, title: str, priority: str = "default", tags: str = "") -> None:
     """Push notification using ntfy service."""
     requests.post(
@@ -97,8 +109,9 @@ if __name__ == "__main__":
 
         # 1. Check if server has a NEWER feed than what we LAST NOTIFIED about
         if current_last_modified > stored_last_modified:
-            print(f"New GTFS found: {current_last_modified.isoformat()}")
-            msg = f"Nuevo GTFS de Vitrasa con fecha {current_last_modified.isoformat()}"
+            formatted_date = format_date_spanish(current_last_modified)
+            print(f"New GTFS found: {formatted_date}")
+            msg = f"Nuevo GTFS de Vitrasa con fecha {formatted_date}"
             push_ntfy(conf.ntfy_topic, msg, "Nuevo GTFS listo", priority="high", tags="rotating_light")
 
             # Update config with new date
@@ -114,10 +127,13 @@ if __name__ == "__main__":
             if os.path.exists(full_path):
                 file_mtime = datetime.fromtimestamp(os.path.getmtime(full_path), tz=timezone.utc)
                 if file_mtime < current_last_modified:
+                    formatted_file_mtime = format_date_spanish(file_mtime)
+                    formatted_feed_mtime = format_date_spanish(current_last_modified)
+
                     print(f"Warning: Local file {conf.file_to_monitor} is outdated.")
                     msg = (
-                        f"El archivo local {os.path.basename(conf.file_to_monitor)} "
-                        f"es anterior al feed disponible ({current_last_modified.isoformat()})"
+                        f"El archivo local ({formatted_file_mtime}) "
+                        f"es anterior al feed disponible ({formatted_feed_mtime})"
                     )
                     push_ntfy(conf.ntfy_topic, msg, "Archivo GTFS desactualizado", priority="default", tags="warning")
                 else:
