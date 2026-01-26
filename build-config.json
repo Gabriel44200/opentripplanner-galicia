@@ -33,7 +33,8 @@
   ],
   "osm": [
     {
-      "source": "./galicia-latest.osm.pbf"
+      "source": "./galicia-latest.osm.pbf",
+      "timeZone": "Europe/Madrid"
     }
   ],
   "transitServiceStart": "-P3D",

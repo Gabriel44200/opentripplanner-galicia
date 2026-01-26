@@ -11,3 +11,6 @@ feeds/*.zip
 
 # Python cache files
 *.pyc
+
+# Config files
+vitrasa_gtfs_ntfy/config.json
