@@ -6,20 +6,18 @@ vars:
   OTP_JAR: otp-shaded-2.8.1.jar
 
 tasks:
-  download-otp:
-    desc: "Download the OpenTripPlanner JAR file"
+  setup:
+    desc: "Set up the project dependencies"
     cmds:
       - curl -L -o {{.OTP_JAR}} https://github.com/opentripplanner/OpenTripPlanner/releases/download/v2.8.1/otp-shaded-2.8.1.jar
-
-  download-pbf:
-    desc: "Download a sample PBF file for building the graph"
-    cmds:
       - curl -sLo galicia-latest.osm.pbf https://download.geofabrik.de/europe/spain/galicia-latest.osm.pbf
+      - uv --directory build_xunta run ./gen_parroquias.py --pbf ../galicia-latest.osm.pbf
 
   download-xunta:
     desc: "Download Xunta de Galicia GTFS data (NAP MITRAMS)"
     cmds:
-      - "curl -H \"ApiKey: {{.NAP_API_KEY}}\" -sLo feeds/xunta.zip https://nap.transportes.gob.es/api/Fichero/download/1584"
+      - uv --directory build_xunta run ./build_static_feed.py {{.NAP_API_KEY}}
+      - cp build_xunta/gtfs_xunta.zip feeds/xunta.zip
 
   download-renfe:
     desc: "Download Renfe GTFS data (NAP MITRAMS)"

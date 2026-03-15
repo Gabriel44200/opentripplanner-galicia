@@ -5,3 +5,6 @@
 [submodule "build_tranvias"]
 	path = build_tranvias
 	url = https://github.com/tpgalicia/gtfs-coruna.git
+[submodule "build_xunta"]
+	path = build_xunta
+	url = https://github.com/tpgalicia/gtfs-xunta.git

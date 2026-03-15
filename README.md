@@ -37,15 +37,8 @@ git submodule update --init --recursive
 Descargar OpenTripPlanner, datos de OpenStreetMap y feeds:
 
 ```bash
-task download-otp
-task download-pbf
+task setup
 task download-feeds NAP_API_KEY=tu_clave_de_api_aqui
-```
-
-Iniciar el proxy de tiempo real de Renfe:
-
-```bash
-task proxy-renfe-rt
 ```
 
 Iniciar OpenTripPlanner:

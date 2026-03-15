@@ -2,7 +2,12 @@
   "updaters": [
     {
       "type": "stop-time-updater",
-      "url": "http://localhost:5000/proto",
+      "url": "https://gtfsrt.renfe.com/trip_updates_LD.pb",
+      "feedId": "renfe"
+    },
+    {
+      "type": "vehicle-positions",
+      "url": "https://gtfsrt.renfe.com/vehicle_positions_LD.pb",
       "feedId": "renfe"
     }
   ]
