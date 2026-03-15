@@ -29,6 +29,16 @@
       "feedId": "vitrasa",
       "type": "gtfs",
       "source": "./feeds/vitrasa.zip"
+    },
+    {
+      "feedId": "shuttle",
+      "type": "gtfs",
+      "source": "./feeds/shuttle.zip"
+    },
+    {
+      "feedId": "ourense",
+      "type": "gtfs",
+      "source": "./feeds/ourense.zip"
     }
   ],
   "osm": [
