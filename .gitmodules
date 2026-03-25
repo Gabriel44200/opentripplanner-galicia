@@ -8,3 +8,6 @@
 [submodule "build_xunta"]
 	path = build_xunta
 	url = https://github.com/tpgalicia/gtfs-xunta.git
+[submodule "build_vitrasa"]
+	path = build_vitrasa
+	url = https://github.com/tpgalicia/gtfs-vigo.git

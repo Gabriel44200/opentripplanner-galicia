@@ -39,6 +39,11 @@
       "feedId": "ourense",
       "type": "gtfs",
       "source": "./feeds/ourense.zip"
+    },
+    {
+      "feedId": "lugo",
+      "type": "gtfs",
+      "source": "./feeds/lugo.zip"
     }
   ],
   "osm": [

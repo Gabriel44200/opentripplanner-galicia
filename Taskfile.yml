@@ -35,7 +35,8 @@ tasks:
   download-vitrasa:
     desc: "Download Vitrasa GTFS data (Vigo Open Data)"
     cmds:
-      - "curl -sLo feeds/vitrasa.zip https://datos.vigo.org/data/transporte/gtfs_vigo.zip"
+      - uv --directory build_vitrasa run ./build_static_feed.py
+      - cp build_vitrasa/gtfs_vigo.zip feeds/vitrasa.zip
 
   download-feeds:
     desc: "Download all required data files"
