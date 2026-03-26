@@ -152,6 +152,62 @@ if __name__ == "__main__":
 
     logging.info(f"Generated {len(calendar_output_rows)} calendar.txt entries")
 
+    # ── Holiday exceptions ──────────────────────────────────────────────────
+    # Known public holidays (YYYYMMDD). For weekday holidays:
+    #   • exception_type=2 for weekday services that don't actually run that day
+    #   • exception_type=1 for holiday services that do run (not in calendar.txt)
+    HOLIDAY_DATES: set[str] = {
+        "20260101", "20260106", "20260319",
+        "20260402", "20260403", "20260501",
+        "20260624", "20260817", "20261012",
+        "20261208", "20261225",
+    }
+
+    weekday_holiday_dates = sorted(
+        d for d in HOLIDAY_DATES
+        if _parse_date(d).weekday() < 5
+        and feed_start <= _parse_date(d) <= feed_end
+    )
+    logging.info(
+        "Weekday holidays within feed range: %s",
+        ", ".join(_parse_date(d).strftime("%Y-%m-%d (%a)") for d in weekday_holiday_dates),
+    )
+
+    weekday_service_ids = {
+        row["service_id"] for row in calendar_output_rows if row["monday"] == "1"
+    }
+
+    calendar_dates_output_rows: list[dict] = []
+    for holiday_date in weekday_holiday_dates:
+        services_on_holiday = {
+            sid for sid, dates in service_dates.items() if holiday_date in dates
+        }
+        # Suppress weekday services that do NOT actually operate on this holiday
+        removed = 0
+        for sid in weekday_service_ids:
+            if sid not in services_on_holiday:
+                calendar_dates_output_rows.append(
+                    {"service_id": sid, "date": holiday_date, "exception_type": "2"}
+                )
+                removed += 1
+        # Activate holiday services not already covered by calendar.txt
+        added = 0
+        for sid in services_on_holiday:
+            if sid not in weekday_service_ids:
+                calendar_dates_output_rows.append(
+                    {"service_id": sid, "date": holiday_date, "exception_type": "1"}
+                )
+                added += 1
+        logging.debug(
+            "Holiday %s: suppressed %d weekday services, activated %d holiday services",
+            holiday_date, removed, added,
+        )
+
+    logging.info(
+        "Generated %d calendar_dates.txt entries (%d weekday holidays).",
+        len(calendar_dates_output_rows), len(weekday_holiday_dates),
+    )
+
     # Copy every file in the feed except calendar_dates.txt / calendar.txt
     # (we replace them with a freshly generated calendar.txt above)
     for filename in os.listdir(INPUT_GTFS_PATH):
@@ -173,6 +229,12 @@ if __name__ == "__main__":
         writer = csv.DictWriter(f, fieldnames=fieldnames)
         writer.writeheader()
         writer.writerows(calendar_output_rows)
+
+    CALENDAR_DATES_OUTPUT_FILE = os.path.join(OUTPUT_GTFS_PATH, "calendar_dates.txt")
+    with open(CALENDAR_DATES_OUTPUT_FILE, "w", encoding="utf-8", newline="") as f:
+        writer = csv.DictWriter(f, fieldnames=["service_id", "date", "exception_type"])
+        writer.writeheader()
+        writer.writerows(calendar_dates_output_rows)
 
     # Create a ZIP archive of the output GTFS
     with zipfile.ZipFile(OUTPUT_GTFS_ZIP, "w", zipfile.ZIP_DEFLATED) as zipf:
