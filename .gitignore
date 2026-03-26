@@ -6,9 +6,6 @@
 *.obj
 *.jar
 
-# Feeds
-feeds/*.zip
-
 # Python cache files
 *.pyc
 

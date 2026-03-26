@@ -1,24 +1,14 @@
 {
   "transitFeeds": [
     {
-      "feedId": "xunta",
-      "type": "gtfs",
-      "source": "./feeds/xunta.zip"
-    },
-    {
-      "feedId": "renfe",
-      "type": "gtfs",
-      "source": "./feeds/renfe.zip"
-    },
-    {
       "feedId": "feve",
       "type": "gtfs",
       "source": "./feeds/feve.zip"
     },
     {
-      "feedId": "tussa",
+      "feedId": "renfe",
       "type": "gtfs",
-      "source": "./feeds/tussa.zip"
+      "source": "./feeds/renfe.zip"
     },
     {
       "feedId": "tranvias",
@@ -29,6 +19,17 @@
       "feedId": "vitrasa",
       "type": "gtfs",
       "source": "./feeds/vitrasa.zip"
+    },
+    {
+      "feedId": "xunta",
+      "type": "gtfs",
+      "source": "./feeds/xunta.zip"
+    },
+
+    {
+      "feedId": "tussa",
+      "type": "gtfs",
+      "source": "./feeds/tussa.zip"
     },
     {
       "feedId": "shuttle",
@@ -52,6 +53,6 @@
       "timeZone": "Europe/Madrid"
     }
   ],
-  "transitServiceStart": "-P3D",
+  "transitServiceStart": "-P2D",
   "transitServiceEnd": "P1M"
 }

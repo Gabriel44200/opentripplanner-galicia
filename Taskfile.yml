@@ -3,13 +3,13 @@ $schema: https://taskfile.dev/schema.json
 version: '3'
 
 vars:
-  OTP_JAR: otp-shaded-2.8.1.jar
+  OTP_JAR: otp-shaded-2.9.0.jar
 
 tasks:
   setup:
     desc: "Set up the project dependencies"
     cmds:
-      - curl -L -o {{.OTP_JAR}} https://github.com/opentripplanner/OpenTripPlanner/releases/download/v2.8.1/otp-shaded-2.8.1.jar
+      - curl -L -o {{.OTP_JAR}} https://github.com/opentripplanner/OpenTripPlanner/releases/download/v2.9.0/otp-shaded-2.9.0.jar
       - curl -sLo galicia-latest.osm.pbf https://download.geofabrik.de/europe/spain/galicia-latest.osm.pbf
       - uv --directory build_xunta run ./gen_parroquias.py --pbf ../galicia-latest.osm.pbf
 

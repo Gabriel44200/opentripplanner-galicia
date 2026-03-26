@@ -1,0 +1,8 @@
+feed/
+__pycache__/
+*.pyc
+
+galicia-latest.osm.pbf
+gtfs_xunta.zip
+parroquias.geojson
+.venv/
