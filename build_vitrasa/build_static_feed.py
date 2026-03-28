@@ -120,22 +120,57 @@ if __name__ == "__main__":
         ref_weekday = None
         logging.warning("No weekday dates found in calendar_dates.txt")
 
+    # ── Holiday exceptions ──────────────────────────────────────────────────
+    # Known public holidays (YYYYMMDD). For weekday holidays:
+    #   • exception_type=2 for weekday services that don't actually run that day
+    #   • exception_type=1 for holiday services that do run (not in calendar.txt)
+    HOLIDAY_DATES: set[str] = {
+        "20260101", "20260106", "20260319",
+        "20260328", "20260402", "20260403",
+        "20260501", "20260624", "20260817",
+        "20261012", "20261208", "20261225",
+    }
+
     feed_start = min(_parse_date(d) for d in all_dates)
     feed_end   = feed_start + timedelta(days=365)
 
+    # Services that can't be classified as weekday/Saturday/Sunday (e.g. holiday-only
+    # services that never ran on the reference weekday or a weekend) are preserved
+    # verbatim via calendar_dates.txt rather than being dropped.
+    non_holiday_weekday_dates = weekday_dates - HOLIDAY_DATES
+    non_holiday_saturday_dates = saturday_dates - HOLIDAY_DATES
+    unclassified_service_dates: dict[str, set[str]] = {}
+
     calendar_output_rows: list[dict] = []
+    added_services = set()
+
     for sid, dates in service_dates.items():
-        is_weekday  = ref_weekday is not None and ref_weekday in dates
-        is_saturday = bool(dates & saturday_dates)
+        is_weekday  = bool(dates & non_holiday_weekday_dates)
+        is_saturday = bool(dates & non_holiday_saturday_dates)
         is_sunday   = bool(dates & sunday_dates)
 
         if not is_weekday and not is_saturday and not is_sunday:
-            logging.warning(f"Service {sid!r} has no day-type classification, skipping")
+            logging.info(
+                "Service %r has no day-type classification; "
+                "will preserve its %d date(s) in calendar_dates.txt",
+                sid, len(dates),
+            )
+            unclassified_service_dates[sid] = dates
             continue
 
         wd  = "1" if is_weekday  else "0"
         sat = "1" if is_saturday else "0"
         sun = "1" if is_sunday   else "0"
+
+        comparing_string = f"{sid[-6:]}__{wd}{sat}{sun}"
+        if comparing_string in added_services:
+            logging.warning(
+                "Service %r has the same day pattern as another service, skipping",
+                sid
+            )
+            continue
+        added_services.add(comparing_string)
+
         calendar_output_rows.append({
             "service_id": sid,
             "monday":     wd,
@@ -152,17 +187,6 @@ if __name__ == "__main__":
 
     logging.info(f"Generated {len(calendar_output_rows)} calendar.txt entries")
 
-    # ── Holiday exceptions ──────────────────────────────────────────────────
-    # Known public holidays (YYYYMMDD). For weekday holidays:
-    #   • exception_type=2 for weekday services that don't actually run that day
-    #   • exception_type=1 for holiday services that do run (not in calendar.txt)
-    HOLIDAY_DATES: set[str] = {
-        "20260101", "20260106", "20260319",
-        "20260402", "20260403", "20260501",
-        "20260624", "20260817", "20261012",
-        "20261208", "20261225",
-    }
-
     weekday_holiday_dates = sorted(
         d for d in HOLIDAY_DATES
         if _parse_date(d).weekday() < 5
@@ -177,7 +201,17 @@ if __name__ == "__main__":
         row["service_id"] for row in calendar_output_rows if row["monday"] == "1"
     }
 
-    calendar_dates_output_rows: list[dict] = []
+    # Preserve all dates of unclassified (holiday-only) services verbatim.
+    calendar_dates_output_rows: list[dict] = [
+        {"service_id": sid, "date": d, "exception_type": "1"}
+        for sid, dates in unclassified_service_dates.items()
+        for d in sorted(dates)
+    ]
+    logging.info(
+        "Preserved %d calendar_dates.txt entries for %d unclassified services.",
+        len(calendar_dates_output_rows), len(unclassified_service_dates),
+    )
+
     for holiday_date in weekday_holiday_dates:
         services_on_holiday = {
             sid for sid, dates in service_dates.items() if holiday_date in dates
@@ -190,21 +224,13 @@ if __name__ == "__main__":
                     {"service_id": sid, "date": holiday_date, "exception_type": "2"}
                 )
                 removed += 1
-        # Activate holiday services not already covered by calendar.txt
-        added = 0
-        for sid in services_on_holiday:
-            if sid not in weekday_service_ids:
-                calendar_dates_output_rows.append(
-                    {"service_id": sid, "date": holiday_date, "exception_type": "1"}
-                )
-                added += 1
         logging.debug(
-            "Holiday %s: suppressed %d weekday services, activated %d holiday services",
-            holiday_date, removed, added,
+            "Holiday %s: suppressed %d weekday services",
+            holiday_date, removed,
         )
 
     logging.info(
-        "Generated %d calendar_dates.txt entries (%d weekday holidays).",
+        "Generated %d total calendar_dates.txt entries (%d weekday holidays processed).",
         len(calendar_dates_output_rows), len(weekday_holiday_dates),
     )
 

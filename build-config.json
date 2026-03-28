@@ -29,22 +29,22 @@
     {
       "feedId": "tussa",
       "type": "gtfs",
-      "source": "./feeds/tussa.zip"
+      "source": "./custom_feeds/tussa.zip"
     },
     {
       "feedId": "shuttle",
       "type": "gtfs",
-      "source": "./feeds/shuttle.zip"
+      "source": "./custom_feeds/shuttle.zip"
     },
     {
       "feedId": "ourense",
       "type": "gtfs",
-      "source": "./feeds/ourense.zip"
+      "source": "./custom_feeds/ourense.zip"
     },
     {
       "feedId": "lugo",
       "type": "gtfs",
-      "source": "./feeds/lugo.zip"
+      "source": "./custom_feeds/lugo.zip"
     }
   ],
   "osm": [
