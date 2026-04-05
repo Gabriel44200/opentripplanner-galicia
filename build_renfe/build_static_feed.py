@@ -1,6 +1,7 @@
 # /// script
 # requires-python = ">=3.12"
 # dependencies = [
+#     "pandas",
 #     "requests",
 #     "tqdm",
 # ]
@@ -8,12 +9,15 @@
 
 from argparse import ArgumentParser
 import csv
+import io
 import json
 import logging
 import os
 import shutil
 import tempfile
 import zipfile
+
+import pandas as pd
 
 import requests
 from tqdm import tqdm
@@ -24,8 +28,7 @@ BOUNDS = {"SOUTH": 41.820455, "NORTH": 43.937462, "WEST": -9.437256, "EAST": -6.
 
 FEEDS = {
     "general": "1098",
-    "cercanias": "1130",
-    "feve": "1131"
+    "cercanias": "1130"
 }
 
 
@@ -189,6 +192,11 @@ if __name__ == "__main__":
         help="Enable debug logging",
         action="store_true"
     )
+    parser.add_argument(
+        "--merge",
+        help="Merge the generated feeds into a single GTFS ZIP file instead of separate ones for each feed",
+        action="store_true"
+    )
 
     args = parser.parse_args()
 
@@ -310,21 +318,21 @@ if __name__ == "__main__":
             os.path.join(INPUT_GTFS_PATH, "routes.txt"), "route_id", route_ids
         )
 
-        if feed == "feve":
-            feve_c1_route_ids = ["46T0001C1", "46T0002C1"]
-            new_route_id = "FEVE_C1"
+        if feed == "cercanias":
+            cercanias_c1_route_ids = ["46T0001C1", "46T0002C1"]
+            new_route_id = "FERROL_C1"
 
             # Find agency_id and a template route
             template_route = routes_in_trips[0] if routes_in_trips else {}
             agency_id = "1"
             for r in routes_in_trips:
-                if r["route_id"].strip() in feve_c1_route_ids:
+                if r["route_id"].strip() in cercanias_c1_route_ids:
                     agency_id = r.get("agency_id", "1")
                     template_route = r
                     break
 
             # Filter out old routes
-            routes_in_trips = [r for r in routes_in_trips if r["route_id"].strip() not in feve_c1_route_ids]
+            routes_in_trips = [r for r in routes_in_trips if r["route_id"].strip() not in cercanias_c1_route_ids]
 
             # Add new route
             new_route = template_route.copy()
@@ -377,13 +385,13 @@ if __name__ == "__main__":
 
         trips_in_galicia = get_rows_by_ids(TRIPS_FILE, "trip_id", trip_ids)
 
-        if feed == "feve":
-            feve_c1_route_ids = ["46T0001C1", "46T0002C1"]
-            new_route_id = "FEVE_C1"
+        if feed == "cercanias":
+            cercanias_c1_route_ids = ["46T0001C1", "46T0002C1"]
+            new_route_id = "FERROL_C1"
             for tig in trips_in_galicia:
-                if tig["route_id"].strip() in feve_c1_route_ids:
-                    tig["route_id"] = new_route_id
+                if tig["route_id"].strip() in cercanias_c1_route_ids:
                     tig["direction_id"] = "1" if tig["route_id"].strip()[6] == "2" else "0"
+                    tig["route_id"] = new_route_id
 
         stops_by_id = {stop["stop_id"]: stop for stop in stops_in_trips}
 
@@ -562,3 +570,62 @@ if __name__ == "__main__":
         os.remove(INPUT_GTFS_ZIP)
         shutil.rmtree(INPUT_GTFS_PATH)
         shutil.rmtree(OUTPUT_GTFS_PATH)
+
+    if args.merge:
+        # Columns to keep for each GTFS file when merging.
+        # Files not listed here keep all columns present in the data.
+        MERGE_KEEP_COLS: dict[str, list[str]] = {
+            "agency.txt": ["agency_id", "agency_name", "agency_url", "agency_timezone", "agency_lang"],
+            "stops.txt": ["stop_id", "stop_code", "stop_name", "stop_lat", "stop_lon", "wheelchair_boarding"],
+            "routes.txt": ["route_id", "agency_id", "route_short_name", "route_long_name", "route_type", "route_color", "route_text_color"],
+            "trips.txt": ["route_id", "service_id", "trip_id", "trip_headsign", "direction_id", "shape_id", "wheelchair_accessible"],
+            "stop_times.txt": ["trip_id", "arrival_time", "departure_time", "stop_id", "stop_sequence", "pickup_type", "drop_off_type"],
+        }
+        # Default values to fill for columns that are missing or NaN after concat.
+        MERGE_FILL_DEFAULTS: dict[str, dict[str, str]] = {
+            "routes.txt": {"agency_id": "1071VC"},
+            "trips.txt": {"direction_id": "0", "shape_id": "", "wheelchair_accessible": ""},
+            "stop_times.txt": {"pickup_type": "0", "drop_off_type": "0"},
+        }
+        # Deduplicate rows by this column, keeping the first occurrence.
+        MERGE_DEDUP_KEY: dict[str, str] = {
+            "stops.txt": "stop_id",
+        }
+
+        merged_zip_path = os.path.join(os.path.dirname(__file__), "gtfs_renfe_galicia_merged.zip")
+        feed_zip_paths = [os.path.join(os.path.dirname(__file__), f"gtfs_renfe_galicia_{feed}.zip") for feed in FEEDS.keys()]
+
+        frames: dict[str, list[pd.DataFrame]] = {}
+        for feed_zip_path in feed_zip_paths:
+            with zipfile.ZipFile(feed_zip_path, "r") as feed_zip:
+                for filename in feed_zip.namelist():
+                    with feed_zip.open(filename) as f:
+                        df = pd.read_csv(f, dtype=str, encoding="utf-8")
+                    df.columns = df.columns.str.strip()
+                    df = df.apply(lambda col: col.str.strip() if col.dtype == object else col)
+                    frames.setdefault(filename, []).append(df)
+
+        with zipfile.ZipFile(merged_zip_path, "w", zipfile.ZIP_DEFLATED) as merged_zip:
+            for filename, dfs in frames.items():
+                merged = pd.concat(dfs, ignore_index=True)
+
+                keep = MERGE_KEEP_COLS.get(filename)
+                defaults = MERGE_FILL_DEFAULTS.get(filename, {})
+                if keep is not None:
+                    for col in keep:
+                        if col not in merged.columns:
+                            merged[col] = defaults.get(col, "")
+                    for col, val in defaults.items():
+                        if col in merged.columns:
+                            merged[col] = merged[col].fillna(val)
+                    merged = merged[keep]
+
+                dedup_key = MERGE_DEDUP_KEY.get(filename)
+                if dedup_key:
+                    merged = merged.drop_duplicates(subset=[dedup_key], keep="first")
+
+                buf = io.StringIO()
+                merged.to_csv(buf, index=False)
+                merged_zip.writestr(filename, buf.getvalue())
+
+        logging.info(f"Feeds merged successfully into {merged_zip_path}.")

@@ -73,12 +73,6 @@
     "stop_lon": -8.230795701069612
   },
   {
-    "stop_id": "21010",
-    "feed_id": "feve",
-    "stop_lat": 43.48826050175589, 
-    "stop_lon": -8.231122670037813
-  },
-  {
     "stop_id": "99117",
     "stop_name": "Ourense Turístico",
     "_delete": true

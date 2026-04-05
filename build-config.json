@@ -1,11 +1,6 @@
 {
   "transitFeeds": [
     {
-      "feedId": "feve",
-      "type": "gtfs",
-      "source": "./feeds/feve.zip"
-    },
-    {
       "feedId": "renfe",
       "type": "gtfs",
       "source": "./feeds/renfe.zip"
