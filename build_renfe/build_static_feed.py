@@ -457,8 +457,6 @@ if __name__ == "__main__":
                     stop_times_by_trip[tid] = []
                 stop_times_by_trip[tid].append(st)
 
-            shapes_file = open("shapes_debug.txt", "w", encoding="utf-8")
-
             for trip_id in tqdm(trip_ids, total=shape_ids_total, desc="Generating shapes"):
                 shape_id = get_shape_id(trip_id)
                 if shape_id in shape_ids_generated:
@@ -487,8 +485,6 @@ if __name__ == "__main__":
 
                 coords_str = ";".join(coordinates)
                 osrm_url = f"{OSRM_BASE_URL}{coords_str}?overview=full&geometries=geojson&continue_straight=false"
-
-                shapes_file.write(f"{trip_id} ({shape_id}): {osrm_url}\n")
 
                 try:
                     response = requests.get(osrm_url, timeout=10)

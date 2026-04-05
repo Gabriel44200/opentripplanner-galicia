@@ -170,8 +170,7 @@ if __name__ == "__main__":
     TRIPS_FILE = os.path.join(INPUT_GTFS_PATH, "trips.txt")
 
     # Copy unchanged files
-    for filename in ["trips.txt",
-                     "calendar.txt", "calendar_dates.txt",
+    for filename in ["calendar.txt", "calendar_dates.txt",
                      "shapes.txt"]:
         src = os.path.join(INPUT_GTFS_PATH, filename)
         if os.path.exists(src):
@@ -206,6 +205,23 @@ if __name__ == "__main__":
         routes = list(reader)
         route_fieldnames = set(reader.fieldnames or routes[0].keys())
 
+    # Drop routes with ID ending in 12 (return, duplicates of the same route with ID ending in 11)
+    original_count = len(routes)
+    routes_2 = []
+    route_ids_set = set()
+    for r in routes:
+        neutralised_id = r["route_id"][:-2]
+        if neutralised_id not in route_ids_set:
+            r["route_id"] = neutralised_id
+            routes_2.append(r)
+            route_ids_set.add(neutralised_id)
+
+    routes = routes_2
+    dropped_count = original_count - len(routes)
+    if dropped_count:
+        logging.info("Dropped %d routes with route_id ending in '12' (return duplicates).", dropped_count)
+
+
     for route in routes:
         short_name = route.get("route_short_name", "")
         agency_key = short_name[:5] if len(short_name) >= 5 else ""
@@ -230,6 +246,25 @@ if __name__ == "__main__":
         writer = csv.DictWriter(routes_out, fieldnames=route_fieldnames, extrasaction="ignore")
         writer.writeheader()
         writer.writerows(routes)
+
+    # Trips: update route_id to remove the last character
+    with open(os.path.join(INPUT_GTFS_PATH, "trips.txt"), encoding="utf-8-sig", newline="") as trips_fh:
+        reader = csv.DictReader(trips_fh)
+        trips = list(reader)
+        trip_fieldnames = list(reader.fieldnames or trips[0].keys())
+
+    for trip in trips:
+        # convert direction_id from 11/12 to 0/1 (11 => ida, 12 => vuelta)
+        trip_route_last_char = trip["route_id"][-1] if trip["route_id"] else ""
+        trip["direction_id"] = "0" if trip_route_last_char == "1" else "1" 
+        trip["route_id"] = trip["route_id"][:-2]  # remove last two character (11/12 suffix)
+        # Ideally we'd remove only one, but at the time of writing there are TWO routes that have variants '11', '12', '21' and '22' 
+
+    with open(os.path.join(OUTPUT_GTFS_PATH, "trips.txt"), "w", encoding="utf-8", newline="") as trips_out:
+        writer = csv.DictWriter(trips_out, fieldnames=trip_fieldnames, extrasaction="ignore")
+        writer.writeheader()
+        writer.writerows(trips)
+
 
     # Build stops.txt with stop_desc
     logging.info("Enriching stops with parish/municipality descriptions …")
