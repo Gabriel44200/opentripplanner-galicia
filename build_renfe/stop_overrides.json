@@ -1,5 +1,11 @@
 [
   {
+    "stop_id": "08223",
+    "stop_name": "Vigo Urzáiz",
+    "stop_lat": 42.234960,
+    "stop_lon": -8.711909
+  },
+  {
     "stop_id": "31412",
     "stop_lat": 43.3504,
     "stop_lon": -8.412142,
@@ -91,5 +97,36 @@
     "stop_id": "99161",
     "stop_name": "Pontevedra Turístico",
     "_delete": true
+  },
+  {
+    "stop_id": "05156",
+    "stop_name": "Viveiro - Apeadero",
+    "stop_lat": 43.66307948733166,
+    "stop_lon": -7.592119972501223
+  },
+  {
+    "stop_id": "05299",
+    "stop_name": "Castropol",
+    "stop_lat": 43.50879091456042,
+    "stop_lon": -7.013783988194376
+  },
+  {
+    "stop_id": "05265",
+    "stop_name": "Tablizo",
+    "stop_lat": 43.548132589750224,
+    "stop_lon": -6.351521338297374
+  },
+  {
+    "stop_id": "05263",
+    "stop_name": "Ballota",
+    "stop_lat": 43.55092647470215,
+    "stop_lon": -6.322749469667542
+  },
+  {
+    "stop_id": "15211",
+    "stop_name": "Oviedo/Uviéu",
+    "stop_lat": 43.366680663195496,
+    "stop_lon": -5.855315584365599
+          
   }
 ]

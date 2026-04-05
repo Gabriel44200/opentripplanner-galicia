@@ -5,3 +5,4 @@ services:
     restart: unless-stopped
     ports:
       - "5050:5000"
+      - "5051:5001"

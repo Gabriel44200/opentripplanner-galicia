@@ -23,8 +23,7 @@ tasks:
     desc: "Download Renfe GTFS data (NAP MITRAMS)"
     cmds:
       - uv --directory build_renfe run ./build_static_feed.py {{.NAP_API_KEY}} --merge
-      - cp build_renfe/gtfs_renfe_galicia_general*.zip feeds/renfe.zip
-      - cp build_renfe/gtfs_renfe_galicia_cercanias*.zip feeds/feve.zip
+      - cp build_renfe/gtfs_renfe_galicia_merged.zip feeds/renfe.zip
 
   download-tranvias:
     desc: "Download A Coruña city GTFS data (NAP MITRAMS)"

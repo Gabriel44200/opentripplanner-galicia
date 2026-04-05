@@ -12,7 +12,10 @@ Este repositorio incluye:
   - GTFS: Urbano de A Coruña
   - GTFS: Urbano de Ourense
   - GTFS: Urbano de Vigo
-- Submódulo Git para descargar y parchear los feeds de Renfe automáticamente
+- Feeds "de la comunidad":
+  - GTFS: Santiago de Compostela (WIP)
+  - GTFS: Ourense (WIP)
+  - GTFS: Lugo
 - Proxy del GTFS RealTime de Renfe para integración con OTP
 - Configuración de OpenTripPlanner para cargar los datos descargados y el tiempo real de Renfe
 - Tareas para ejecutar OTP directamente
@@ -21,7 +24,7 @@ Este repositorio incluye:
 
 Para ejecutar los contenidos de este repositorio, es necesario tener descargado:
 
-- **Java 21 LTS**: en sistemas Windows o macOS, se recomienda descargar de [Adoptium](https://adoptium.net/). En sistemas Linux, se puede instalar OpenJDK 21 desde los repositorios oficiales.
+- **Java 25 LTS**: en sistemas Windows o macOS, se recomienda descargar de [Adoptium](https://adoptium.net/). En sistemas Linux, se puede instalar OpenJDK 25 desde los repositorios oficiales.
 - **Task**: Se recomienda tener [Task](https://taskfile.dev/) instalado para gestionar las tareas definidas en el `Taskfile.yml`. Alternativamente, se pueden ejecutar directamente, pero es más sencillo con Task.
 - **Python y `uv`**: Para el proxy de tiempo real de Renfe, es necesario tener Python, con los paquetes `Flask`, `requests` y `protobuf` instalados. Utilizando [`uv`](https://docs.astral.sh/uv) se puede con solo una línea. El Taskfile asume que se está utilizando `uv` directamente.
 - **Clave de API del NAP del Ministerio de Transportes**: Para poder descargar los feeds disponibles en el Punto de Acceso Nacional (NAP), es necesario registrarse y obtener una clave de API en [https://nap.transportes.gob.es/](https://nap.transportes.gob.es/).
@@ -31,12 +34,6 @@ Para descargar los datos y ejecutar OTP, se pueden utilizar las siguientes tarea
 ```bash
 git clone https://github.com/tpgalicia/opentripplanner-galicia.git
 cd opentripplanner-galicia
-git submodule update --init --recursive
-```
-
-Descargar OpenTripPlanner, datos de OpenStreetMap y feeds:
-
-```bash
 task setup
 task download-feeds NAP_API_KEY=tu_clave_de_api_aqui
 ```
