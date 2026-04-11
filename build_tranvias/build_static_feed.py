@@ -13,6 +13,7 @@ import os
 import shutil
 import tempfile
 import zipfile
+from datetime import datetime
 
 import requests
 
@@ -74,6 +75,10 @@ if __name__ == "__main__":
     TRIPS_FILE = os.path.join(INPUT_GTFS_PATH, "trips.txt")
     STOPS_FILE = os.path.join(INPUT_GTFS_PATH, "stops.txt")
     ROUTES_FILE = os.path.join(INPUT_GTFS_PATH, "routes.txt")
+    CALENDAR_FILE = os.path.join(INPUT_GTFS_PATH, "calendar.txt")
+    CALENDAR_DATES_FILE = os.path.join(INPUT_GTFS_PATH, "calendar_dates.txt")
+
+
 
     # Copy every file in feed except stops.txt and routes.txt
     for filename in os.listdir(INPUT_GTFS_PATH):
@@ -177,6 +182,47 @@ if __name__ == "__main__":
             writer = csv.DictWriter(f, fieldnames=routes[0].keys())
             writer.writeheader()
             writer.writerows(routes)
+
+    #Process calendar.txt with BUI fix
+    logging.info("Processing calendar.txt...")
+
+    current_year = datetime.now().year
+
+    calendars = get_rows(CALENDAR_FILE)
+    for calendar in calendars:
+            if calendar["service_id"][:-6] == "1801":
+                calendar["start_date"] = f"{current_year}0801"
+                calendar["end_date"] = f"{current_year}0831"
+
+    if calendars:
+        with open(
+            os.path.join(OUTPUT_GTFS_PATH, "calendar.txt"),
+            "w",
+            encoding="utf-8",
+            newline="",
+        ) as f:
+            writer = csv.DictWriter(f, fieldnames=calendars[0].keys())
+            writer.writeheader()
+            writer.writerows(calendars)
+
+    # Process calendar_dates.txt with BUI fix
+        logging.info("Processing calendar_dates.txt...")
+        
+        calendar_dates = get_rows(CALENDAR_DATES_FILE)
+        for cdate in calendar_dates[:]:
+            if cdate["service_id"][:-6] == "1801":
+                calendar_dates.remove(cdate)
+        
+        if calendar_dates:
+            with open(
+                os.path.join(OUTPUT_GTFS_PATH, "calendar_dates.txt"),
+                "w",
+                encoding="utf-8",
+                newline="",
+            ) as f:
+                writer = csv.DictWriter(f, fieldnames=calendar_dates[0].keys())
+                writer.writeheader()
+                writer.writerows(calendar_dates)
 
     # Create a ZIP archive of the output GTFS
     with zipfile.ZipFile(OUTPUT_GTFS_ZIP, "w", zipfile.ZIP_DEFLATED) as zipf:

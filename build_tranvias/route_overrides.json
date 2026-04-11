@@ -15,7 +15,7 @@
   { "route_id": "1500", "route_color": "4DB94C" },
   { "route_id": "1700", "route_color": "A15011" },
   { "route_id": "1800", "route_color": "35264F" },
-  { "route_id": "1801", "route_color": "35264F" },
+  { "route_id": "1801", "route_short_name":"BUI", "route_color": "35264F" },
   { "route_id": "1900", "route_color": "E46078" },
   { "route_id": "2000", "route_color": "982135" },
   { "route_id": "2100", "route_color": "355787" },
