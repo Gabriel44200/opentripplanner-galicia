@@ -1,0 +1,2 @@
+service_id,monday,tuesday,wednesday,thursday,friday,saturday,sunday,start_date,end_date
+futbol,0,0,0,0,1,0,0,20270101,20270101
