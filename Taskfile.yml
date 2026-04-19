@@ -34,7 +34,7 @@ tasks:
   download-vitrasa:
     desc: "Download Vitrasa GTFS data (Vigo Open Data)"
     cmds:
-      - uv --directory build_vitrasa run ./build_static_feed.py
+      - uv --directory build_vitrasa run ./build_static_feed.py --match-days match_days.json
       - cp build_vitrasa/gtfs_vigo.zip feeds/vitrasa.zip
 
   download-feeds:

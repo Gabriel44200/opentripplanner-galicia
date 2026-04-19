@@ -1,0 +1,4 @@
+trip_id,route_id,service_id,trip_headsign,trip_short_name,direction_id,block_id,shape_id,wheelchair_accessible,bikes_allowed
+rio,34,futbol,P. ESPAÑA-T.VIGO-S.BADÍA,,0,,1753,,
+mar,35,futbol,CASTELAO-CAMELIAS-G.BARBÓN.M.GARRIDO,,0,,5lzp,,
+gol,36,futbol,NAVIA-BOUZAS-URZAIZ-G. ESPINO,,0,,vcxv,,

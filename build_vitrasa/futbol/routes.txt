@@ -1,0 +1,4 @@
+route_id,agency_id,route_short_name,route_long_name,route_desc,route_type,route_url,route_branding_url,route_color,route_text_color,route_sort_order,continuous_pickup,continuous_drop_off
+34,1,RIO,Lanzadeira RIO: P.España - Travesía de Vigo - Sanjurjo Badía,,3,https://vitrasa.es/informacion/servicios/lanzaderas-futbol,,6cace4,FFFFFF,,,
+35,1,MAR,Lanzadeira MARCADOR: Castelao - Camelias - G. Barbón - Martínez Garrido,,3,,,6cace4,FFFFFF,,,
+36,1,GOL,Lanzadeira GOL: Navia - Bouzas - Urzáiz - Gregorio Espino,,3,,,6cace4,FFFFFF,,,

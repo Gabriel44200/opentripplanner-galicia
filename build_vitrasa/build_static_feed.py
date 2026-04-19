@@ -12,6 +12,7 @@ import json
 import logging
 import os
 import shutil
+import sys
 import tempfile
 import zipfile
 
@@ -39,6 +40,21 @@ if __name__ == "__main__":
         "--debug",
         help="Enable debug logging",
         action="store_true"
+    )
+    parser.add_argument(
+        "--match-days",
+        type=str,
+        default=None,
+        metavar="FILE",
+        help="Path to JSON file with football match days. If provided, futbol routes/trips are merged into gtfs_vigo.zip.",
+    )
+    parser.add_argument(
+        "--futbol-offset-minutes",
+        type=int,
+        nargs="+",
+        default=None,
+        metavar="MINUTES",
+        help="Wave offsets in minutes after match start for the futbol feed. Default: 120 130.",
     )
 
     args = parser.parse_args()
@@ -261,6 +277,64 @@ if __name__ == "__main__":
         writer = csv.DictWriter(f, fieldnames=["service_id", "date", "exception_type"])
         writer.writeheader()
         writer.writerows(calendar_dates_output_rows)
+
+    if args.match_days is not None:
+        sys.path.insert(0, os.path.dirname(__file__))
+        from futbol import build_futbol_data
+        from datetime import timedelta as _td
+
+        wave_offsets = (
+            [_td(minutes=m) for m in args.futbol_offset_minutes]
+            if args.futbol_offset_minutes is not None
+            else None
+        )
+        futbol = build_futbol_data(args.match_days, wave_offsets)
+
+        # Append futbol routes to routes.txt
+        routes_file = os.path.join(OUTPUT_GTFS_PATH, "routes.txt")
+        with open(routes_file, "r", encoding="utf-8", newline="") as f:
+            routes_fieldnames = next(csv.reader(f))
+        with open(routes_file, "a", encoding="utf-8", newline="") as f:
+            writer = csv.DictWriter(f, fieldnames=routes_fieldnames, extrasaction="ignore")
+            writer.writerows(futbol["routes"])
+
+        # Append futbol shapes to shapes.txt (create if missing)
+        if futbol["shapes"]:
+            shapes_file = os.path.join(OUTPUT_GTFS_PATH, "shapes.txt")
+            file_exists = os.path.exists(shapes_file)
+            if file_exists:
+                with open(shapes_file, "r", encoding="utf-8", newline="") as f:
+                    shapes_fieldnames = next(csv.reader(f))
+            else:
+                shapes_fieldnames = list(futbol["shapes"][0].keys())
+            with open(shapes_file, "a", encoding="utf-8", newline="") as f:
+                writer = csv.DictWriter(f, fieldnames=shapes_fieldnames, extrasaction="ignore")
+                if not file_exists:
+                    writer.writeheader()
+                writer.writerows(futbol["shapes"])
+
+        # Append futbol trips to trips.txt
+        trips_file = os.path.join(OUTPUT_GTFS_PATH, "trips.txt")
+        with open(trips_file, "r", encoding="utf-8", newline="") as f:
+            trips_fieldnames = next(csv.reader(f))
+        with open(trips_file, "a", encoding="utf-8", newline="") as f:
+            writer = csv.DictWriter(f, fieldnames=trips_fieldnames, extrasaction="ignore")
+            writer.writerows(futbol["trips"])
+
+        # Append futbol stop_times to stop_times.txt
+        stoptimes_file = os.path.join(OUTPUT_GTFS_PATH, "stop_times.txt")
+        with open(stoptimes_file, "r", encoding="utf-8", newline="") as f:
+            stoptimes_fieldnames = next(csv.reader(f))
+        with open(stoptimes_file, "a", encoding="utf-8", newline="") as f:
+            writer = csv.DictWriter(f, fieldnames=stoptimes_fieldnames, extrasaction="ignore")
+            writer.writerows(futbol["stop_times"])
+
+        # Append futbol calendar_dates entries
+        with open(CALENDAR_DATES_OUTPUT_FILE, "a", encoding="utf-8", newline="") as f:
+            writer = csv.DictWriter(f, fieldnames=["service_id", "date", "exception_type"])
+            writer.writerows(futbol["calendar_dates"])
+
+        logging.info("[futbol] Data merged into main feed.")
 
     # Create a ZIP archive of the output GTFS
     with zipfile.ZipFile(OUTPUT_GTFS_ZIP, "w", zipfile.ZIP_DEFLATED) as zipf:
