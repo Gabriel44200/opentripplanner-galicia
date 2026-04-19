@@ -1,0 +1,7 @@
+service_id,monday,tuesday,wednesday,thursday,friday,saturday,sunday,start_date,end_date
+FUT1,1,1,1,1,1,1,1,20300101,20300101
+COL1,1,1,1,1,1,1,1,20300101,20300101
+
+
+
+

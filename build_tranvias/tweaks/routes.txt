@@ -1,0 +1,2 @@
+route_id,agency_id,route_short_name,route_long_name,route_type,route_color
+2452,9,UDC,Pza. de Pontevedra-Campus Elviña,3,D61D3F
